@@ -35,7 +35,7 @@ cas(me)^2:
   feature_root: ~
 #  segment_feat_root: "/kaggle/working/ME-GCN-Project/features/cas(me)^2/feature_segment"
   # 使用提取的特征进行训练
-  segment_feat_root: "/kaggle/input/output/data/casme_2/feature_segment_apex"
+  segment_feat_root: "/kaggle/working/data/casme_2/feature_segment_apex"
   model_save_root: ~
   output_dir_name: ~
   anno_csv: "/kaggle/working/ME-GCN-Project/info_csv/cas(me)_new.csv"
