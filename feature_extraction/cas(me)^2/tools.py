@@ -7,6 +7,8 @@ import cv2
 import torch
 from SAN.san_api import SanLandmarkDetector
 from retinaface.api import Facedetecor as RetinaFaceDetector
+
+
 # from retinaface import RetinaFace
 # import os
 # import dlib
@@ -45,22 +47,14 @@ class LandmarkDetector:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.det = SanLandmarkDetector(model_path, device)
 
-    def cal(self, img, face_box=None):
+    def cal(self, img, offset=None, face_box=None):
         if face_box is None:
             face_box = (0, 0, img.shape[1], img.shape[0])
         locs, _ = self.det.detect(img, face_box)
-        # # 用于测试
-        # print(len(locs))
-        # 关键点的范围要在 图片范围内
-        x_list = []
-        y_list = []
-        for loc in locs:
-            # # 测试
-            # # 这段可能不用检测
-            # if loc[0] < 0 or loc[0] > img.shape[1] or loc[1] < 0 or loc[1] > img.shape[0]:
-            #     print(loc[0], loc[1])
-            x_list.append(loc[0])
-            y_list.append(loc[1])
+        x_list = [
+            loc[0] if offset is None else loc[0] - offset[0] for loc in locs]
+        y_list = [
+            loc[1] if offset is None else loc[1] - offset[1] for loc in locs]
         return x_list, y_list
 
     def info(self, img, face_box=None):
@@ -68,9 +62,6 @@ class LandmarkDetector:
             face_box = (0, 0, img.shape[1], img.shape[0])
         locs, _ = self.det.detect(img, face_box)
         print(locs)
-
-
-
 
 
 class FaceDetector:
@@ -83,8 +74,12 @@ class FaceDetector:
         # self.info(img)
         left, top, right, bottom = self.det.get_face_box(img)
         # 检测到已裁剪的人脸图像 检测的参数不合法时
-        if left < 0 or top < 0 or right > img.shape[1] or bottom > img.shape[0]:
-            left, top, right, bottom = 0, 0, img.shape[1], img.shape[0]
+        # if left < 0 or top < 0 or right > img.shape[1] or bottom > img.shape[0]:
+        #     left, top, right, bottom = 0, 0, img.shape[1], img.shape[0]
+        left = np.clip(left, 0, img.shape[1])
+        top = np.clip(top, 0, img.shape[0])
+        right = np.clip(right, 0, img.shape[1])
+        bottom = np.clip(bottom, 0, img.shape[0])
         return left, top, right, bottom
 
     def info(self, img):
@@ -141,8 +136,8 @@ def get_rectangle_roi_boundary(indices, landmarks,
     roi_landmarks = landmarks[indices]
     left_bound, top_bound = np.min(roi_landmarks, axis=0)
     right_bound, bottom_bound = np.max(roi_landmarks, axis=0)
-    return left_bound-horizontal_bound, top_bound-vertical_bound, \
-        right_bound+horizontal_bound, bottom_bound+vertical_bound
+    return left_bound - horizontal_bound, top_bound - vertical_bound, \
+           right_bound + horizontal_bound, bottom_bound + vertical_bound
 
 
 def get_rois(mat, landmarks, indices, horizontal_bound=3, vertical_bound=3):
@@ -172,7 +167,7 @@ def get_rois(mat, landmarks, indices, horizontal_bound=3, vertical_bound=3):
         x = landmark[0].item()
         y = landmark[1].item()
         roi_list.append(mat[y - vertical_bound: y + vertical_bound + 1,
-                            x - horizontal_bound: x + horizontal_bound + 1, :])
+                        x - horizontal_bound: x + horizontal_bound + 1, :])
     return np.stack(roi_list, axis=0)
 
 
@@ -241,15 +236,16 @@ def cal_global_optflow_vector(flows, landmarks):
     Returns:
         global optical flow vector.
     """
+
     # 这个函数没有任何处理？
     # 使用下面这个函数的处理？
     # python函数内嵌套函数？
     def _cal_partial_opt_flow(indices, horizontal_bound, vertical_bound):
 
         (nose_roi_left, nose_roi_top, nose_roi_right,
-            nose_roi_bottom) = get_rectangle_roi_boundary(
-                indices, landmarks,
-                horizontal_bound, vertical_bound)
+         nose_roi_bottom) = get_rectangle_roi_boundary(
+            indices, landmarks,
+            horizontal_bound, vertical_bound)
         """
         flow_nose_roi is empty after extraction, checking boundaries...
 ROI boundaries: top=139, bottom=153, left=34, right=27
@@ -321,9 +317,9 @@ def calculate_roi_freature_list(flow, landmarks, radius):
     ior_flows = get_rois(
         flow, landmarks,
         indices=[
-            18, 19, 20,     # left eyebrow
-            23, 24, 25,     # right eyebrow
-            28, 30,         # nose
+            18, 19, 20,  # left eyebrow
+            23, 24, 25,  # right eyebrow
+            28, 30,  # nose
             48, 51, 54, 57  # mouse
         ],
         horizontal_bound=radius,
@@ -334,7 +330,7 @@ def calculate_roi_freature_list(flow, landmarks, radius):
     global_optflow_vector = cal_global_optflow_vector(flow, landmarks)
 
     ior_flows_adjust = ior_flows - global_optflow_vector
-    ior_feature_list = []   # feature in face
+    ior_feature_list = []  # feature in face
     for ior_flow in ior_flows_adjust:
         ior_main_direction_flow = get_main_direction_flow(
             ior_flow,

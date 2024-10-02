@@ -18,7 +18,7 @@ def get_flow_count(root_path):
             for type_item in sub_item.iterdir():
                 if type_item.is_dir():
                     count += len(glob.glob(os.path.join(
-                                           str(type_item), "flow_x*.jpg")))
+                        str(type_item), "flow_x*.jpg")))
     return count
 
 
@@ -35,7 +35,7 @@ def feature(opt):
     print(f"opt_step: {opt_step}")
 
     # for debug use
-    #short_video_list = []
+    # short_video_list = []
     with tqdm(total=sum_count) as tq:
         for sub_item in Path(optflow_root_path).iterdir():
             if not sub_item.is_dir():
@@ -95,7 +95,7 @@ def feature(opt):
                         flow_x_y = flow_x_y - 0.5
                         landmarks = np.array(
                             [(int(row[index]), int(row[index + 68]))
-                                for index in range(int(len(row) // 2))])
+                             for index in range(int(len(row) // 2))])
 
                         try:
                             ior_feature_list = calculate_roi_freature_list(
@@ -141,7 +141,8 @@ def feature(opt):
     # print("len of wrong video_list: {}".format(len(short_video_list)))
     # print("*" * 10, "wrong video list", "*" * 10)
     # print(short_video_list)
-    
+
+
 if __name__ == "__main__":
     with open("/kaggle/working/ME-GCN-Project/feature_extraction/cas(me)^2/config.yaml", encoding="UTF-8") as f:
         yaml_config = yaml.safe_load(f)

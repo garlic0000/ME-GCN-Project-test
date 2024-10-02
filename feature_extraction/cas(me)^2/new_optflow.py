@@ -5,6 +5,7 @@ from tqdm import tqdm
 from tools import get_micro_expression_average_len
 
 import yaml
+
 # denseflow --help
 
 """
@@ -42,6 +43,7 @@ Usage: denseflow [params] input
 		filename of video or folder of frames or a list.txt of those
 """
 
+
 def get_dir_count(root_path):
     count = 0
     for sub_item in Path(root_path).iterdir():
@@ -53,6 +55,7 @@ def get_dir_count(root_path):
                         count += 1
     return count
 
+
 """
 光流特征是整张图片提取？
 然后再剪切ROIs？
@@ -63,10 +66,11 @@ def get_dir_count(root_path):
 
 """
 
+
 def optflow(opt):
     cropped_root_path = opt["cropped_root_path"]
     optflow_root_path = opt["optflow_root_path"]
-    #anno_csv_path = opt["anno_csv_path"]
+    # anno_csv_path = opt["anno_csv_path"]
 
     if not os.path.exists(cropped_root_path):
         print(f"path {cropped_root_path} is not exist")
@@ -77,7 +81,7 @@ def optflow(opt):
     dir_count = get_dir_count(cropped_root_path)
     print("flow count = ", dir_count)
 
-    opt_step = 1 # int(get_micro_expression_average_len(anno_csv_path) // 2)
+    opt_step = 1  # int(get_micro_expression_average_len(anno_csv_path) // 2)
 
     with tqdm(total=dir_count) as tq:
         for sub_item in Path(cropped_root_path).iterdir():
