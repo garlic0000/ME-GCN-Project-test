@@ -70,12 +70,8 @@ class FaceDetector:
         self.det = RetinaFaceDetector(model_path, device)
 
     def cal(self, img):
-        # 用于测试 输出检测格式
-        # self.info(img)
         left, top, right, bottom = self.det.get_face_box(img)
-        # 检测到已裁剪的人脸图像 检测的参数不合法时
-        # if left < 0 or top < 0 or right > img.shape[1] or bottom > img.shape[0]:
-        #     left, top, right, bottom = 0, 0, img.shape[1], img.shape[0]
+        # 检测已裁剪的人脸图像 检测的参数不合法时
         left = np.clip(left, 0, img.shape[1])
         top = np.clip(top, 0, img.shape[0])
         right = np.clip(right, 0, img.shape[1])
