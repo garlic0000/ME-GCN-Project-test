@@ -33,7 +33,6 @@ cas(me)^2:
 
   project_root: "/kaggle/working/ME-GCN-Project"
   feature_root: ~
-#  segment_feat_root: "/kaggle/working/ME-GCN-Project/features/cas(me)^2/feature_segment"
   # 使用提取的特征进行训练
   segment_feat_root: "/kaggle/working/data/casme_2/feature_segment_apex"
   model_save_root: ~
@@ -41,6 +40,9 @@ cas(me)^2:
   anno_csv: "/kaggle/working/ME-GCN-Project/info_csv/cas(me)_new.csv"
   num_workers: 2
   device: 'cuda:0'
+
+
+
 
   abfcm_training_lr: 0.01
   abfcm_weight_decay: 0.1

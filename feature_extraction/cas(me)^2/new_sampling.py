@@ -16,6 +16,7 @@ def get_img_sampling_count(root_path, sampling_ratio):
                 if type_item.is_dir():
                     img_path_list = glob.glob(
                         os.path.join(str(type_item), "*.jpg"))
+                    # cas(me)^2的降采样率是什么
                     sample_count = int(len(img_path_list) / sampling_ratio)
                     if len(img_path_list) - sample_count * sampling_ratio != 0:
                         sample_count += 1
