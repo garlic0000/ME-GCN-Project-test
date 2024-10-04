@@ -34,6 +34,7 @@ cmake \
     -DBUILD_NEW_PYTHON_SUPPORT=ON \
     -DBUILD_opencv_python3=ON \
     -DHAVE_opencv_python3=ON \
+    -DBUILD_SHARED_LIBS=ON \
     -DPYTHON_EXECUTABLE=/opt/conda/bin/python3 \
     -DPYTHON_DEFAULT_EXECUTABLE=/opt/conda/bin/python3 \
     -DPYTHON_INCLUDE_DIR=/opt/conda/include/python3.10 \
