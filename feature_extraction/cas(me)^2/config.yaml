@@ -4,9 +4,9 @@ cas(me)^2:
   # 云服务器上的命名为casme2 实际上是cas(me)^2
   # 使用casme_2代表cas(me)^2
   # original_root_path: "/kaggle/input/casme2/rawpic/rawpic"
-  # simpled_root_path: "/kaggle/input/casme2/rawpic/rawpic"  # 数据集的所有帧
-  cropped_root_path: "/kaggle/input/casme2/rawpic/rawpic"
-  # cropped_root_path: "/kaggle/working/data/casme_2/cropped_apex"
+  simpled_root_path: "/kaggle/input/casme2/rawpic/rawpic"  # 数据集的所有帧
+  #cropped_root_path: "/kaggle/input/casme2/rawpic/rawpic"
+  cropped_root_path: "/kaggle/working/data/casme_2/cropped_apex"
   optflow_root_path: "/kaggle/working/data/casme_2/optflow_apex"
   feature_root_path: "/kaggle/working/data/casme_2/feature_apex"
   feature_segment_root_path:  "/kaggle/working/data/casme_2/feature_segment_apex"
