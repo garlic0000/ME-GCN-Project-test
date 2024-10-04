@@ -7,29 +7,32 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-def calculate_tvl1_optical_flow(frame1, frame2):
-    # 使用 TV-L1 算法创建光流计算器
-    tvl1 = cv2.optflow.DualTVL1OpticalFlow_create()
+# 使用 cv2.cuda 版本来计算光流
+def calculate_tvl1_optical_flow_gpu(frame1, frame2):
+    # 使用 GPU 版的 TVL1 光流
+    tvl1 = cv2.cuda_OpticalFlowDual_TVL1.create()
+
+    # 将图像上传到 GPU
+    gpu_frame1 = cv2.cuda_GpuMat()
+    gpu_frame2 = cv2.cuda_GpuMat()
+    gpu_frame1.upload(frame1)
+    gpu_frame2.upload(frame2)
 
     # 计算光流
-    flow = tvl1.calc(frame1, frame2, None)
+    gpu_flow = tvl1.calc(gpu_frame1, gpu_frame2, None)
+
+    # 将光流从 GPU 下载到 CPU
+    flow = gpu_flow.download()
 
     return flow
 
 
 def save_flow_to_image(flow, output_path, frame_index):
-    # 将光流的x和y分量分开
     flow_x, flow_y = flow[..., 0], flow[..., 1]
-
-    # 归一化到 0~255 之间
     flow_x_normalized = cv2.normalize(flow_x, None, 0, 255, cv2.NORM_MINMAX)
     flow_y_normalized = cv2.normalize(flow_y, None, 0, 255, cv2.NORM_MINMAX)
-
-    # 转换为8位图像
     flow_x_img = flow_x_normalized.astype(np.uint8)
     flow_y_img = flow_y_normalized.astype(np.uint8)
-
-    # 保存为图像文件
     cv2.imwrite(os.path.join(output_path, f"flow_x_{frame_index:05d}.jpg"), flow_x_img)
     cv2.imwrite(os.path.join(output_path, f"flow_y_{frame_index:05d}.jpg"), flow_y_img)
 
@@ -45,7 +48,7 @@ def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
 
     for i in range(opt_step, len(image_list), opt_step):
         frame = cv2.imread(image_list[i], cv2.IMREAD_GRAYSCALE)
-        flow = calculate_tvl1_optical_flow(prev_frame, frame)
+        flow = calculate_tvl1_optical_flow_gpu(prev_frame, frame)
         save_flow_to_image(flow, output_dir, frame_index)
         frame_index += 1
         prev_frame = frame
@@ -76,7 +79,7 @@ def optflow(opt):
     dir_count = get_dir_count(cropped_root_path)
     print("flow count = ", dir_count)
 
-    opt_step = 1  # 采样率
+    opt_step = 1
 
     with tqdm(total=dir_count) as tq:
         for sub_item in Path(cropped_root_path).iterdir():
