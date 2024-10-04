@@ -40,6 +40,13 @@ cmake \
     -DPYTHON_INCLUDE_DIR=/opt/conda/include/python3.10 \
     -DPYTHON_LIBRARY=/opt/conda/lib/libpython3.10.so \
     -DPYTHON3_PACKAGES_PATH=/opt/conda/lib/python3.10/site-packages \
+    -DBUILD_opencv_cudaarithm=ON \
+    -DBUILD_opencv_cudabgsegm=ON \
+    -DBUILD_opencv_cudafilters=ON \
+    -DBUILD_opencv_cudaimgproc=ON \
+    -DBUILD_opencv_cudawarping=ON \
+    -DBUILD_opencv_cudaoptflow=ON \
+    -DBUILD_opencv_cudalegacy=ON \
     -DWITH_OPENGL=OFF \
     -DWITH_VTK=OFF \
     -DFORCE_VTK=OFF \
