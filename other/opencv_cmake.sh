@@ -38,6 +38,7 @@ cmake \
     -DPYTHON_DEFAULT_EXECUTABLE=/opt/conda/envs/newCondaEnvironment/bin/python3 \
     -DPYTHON_INCLUDE_DIR=/opt/conda/envs/newCondaEnvironment/include/python3.10 \
     -DPYTHON_LIBRARY=/opt/conda/envs/newCondaEnvironment/lib/libpython3.so \
+    -DPYTHONPATH=/usr/local/opencv-4.10/python/cv2 \
     -DWITH_OPENGL=OFF \
     -DWITH_VTK=OFF \
     -DFORCE_VTK=OFF \
