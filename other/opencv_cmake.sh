@@ -77,6 +77,9 @@ cmake \
     -DOpenBLAS_LIB=/usr/lib/x86_64-linux-gnu/libopenblas.so \
     -DLAPACKE_INCLUDE_DIR=/usr/include \
     -DLAPACKE_LIBRARIES=/usr/lib/x86_64-linux-gnu/liblapacke.so \
+    -DGLIB_LIBRARY=/opt/conda/pkgs/libglib-2.80.3-h8a4344b_1/lib/libglib-2.0.so \
+    -DGLIB_INCLUDE_DIR=/opt/conda/pkgs/libglib-2.80.3-h8a4344b_1/include/glib-2.0 \
+    -DGLIB_CONFIG_INCLUDE_DIR=/opt/conda/pkgs/libglib-2.80.3-h8a4344b_1/lib/pkgconfig \
     -DCUDA_ARCH_BIN=6.0 \
     -DCUDA_ARCH_PTX=6.0 \
     -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda \
