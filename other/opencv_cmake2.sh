@@ -1,0 +1,33 @@
+cmake \
+    -DOpenGL_GL_PREFERENCE=GLVND \
+    -DCMAKE_BUILD_TYPE=RELEASE \
+    -DBUILD_opencv_python2=OFF \
+    -DBUILD_NEW_PYTHON_SUPPORT=ON \
+    -DBUILD_opencv_python3=ON \
+    -DHAVE_opencv_python3=ON \
+    -DPYTHON_EXECUTABLE=/opt/conda/bin/python3 \
+    -DPYTHON_DEFAULT_EXECUTABLE=/opt/conda/bin/python3 \
+    -DPYTHON_INCLUDE_DIR=/opt/conda/include/python3.10 \
+    -DPYTHON_LIBRARY=/opt/conda/lib/libpython3.10.so \
+    -DPYTHON3_PACKAGES_PATH=/opt/conda/lib/python3.10/site-packages \
+    -DBUILD_opencv_cudaarithm=ON \
+    -DBUILD_opencv_cudabgsegm=ON \
+    -DBUILD_opencv_cudafilters=ON \
+    -DBUILD_opencv_cudaimgproc=ON \
+    -DBUILD_opencv_cudawarping=ON \
+    -DBUILD_opencv_cudaoptflow=ON \
+    -DBUILD_opencv_cudalegacy=ON \
+    -DWITH_OPENGL=ON \
+    -DWITH_CUDA=ON \
+    -DNVCC_FLAGS_EXTRA="--default-stream per-thread" \
+    -DENABLE_PRECOMPILED_HEADERS=OFF \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/opencv-4.10 \
+    -DOPENCV_GENERATE_PKGCONFIG=ON \
+    -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+    -DCUDA_ARCH_BIN=6.0 \
+    -DCUDA_ARCH_PTX=6.0 \
+    -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda \
+    -DWITH_OPENCL=ON \
+    -DOpenCL_LIBRARY=/usr/local/cuda/lib64/libOpenCL.so \
+    -DOpenCL_INCLUDE_DIR=/usr/local/cuda/include/ \
+    ..
