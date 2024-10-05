@@ -1,0 +1,21 @@
+dataset: "cas(me)^2"
+cas(me)^2:
+  dataset: "cas(me)^2"
+  # 云服务器上的命名为casme2 实际上是cas(me)^2
+  # 使用casme_2代表cas(me)^2
+  # original_root_path: "/kaggle/input/casme2/rawpic/rawpic"
+  # simpled_root_path: "/kaggle/input/casme2/rawpic/rawpic"  # 数据集的所有帧
+  cropped_root_path: "/kaggle/input/casme2/cropped/cropped/15/anger1_1"
+  # cropped_root_path: "/kaggle/working/data/casme_2/cropped_apex"
+  optflow_root_path: "/kaggle/working/data/casme_2/optflow_apex"
+  feature_root_path: "/kaggle/working/data/casme_2/feature_apex"
+  feature_segment_root_path:  "/kaggle/working/data/casme_2/feature_segment_apex"
+  # original_anno_csv_path: "/kaggle/working/ME-GCN-Project/info_csv/cas(me)_new.csv"
+  anno_csv_path: "/kaggle/working/ME-GCN-Project/info_csv/cas(me)_new.csv"
+  CROPPED_SIZE: 500
+  SEGMENT_LENGTH: 256
+  RECEPTIVE_FILED: 15 # should be odd
+  face_det_model_path: "/kaggle/input/checkpoint/pytorch/default/1/retinaface_Resnet50_Final.pth"
+  landmark_model_path: "/kaggle/input/checkpoint/pytorch/default/1/san_checkpoint_49.pth.tar"
+
+
