@@ -10,7 +10,6 @@ from tqdm import tqdm
 def calculate_tvl1_optical_flow(frame1, frame2):
     # 使用 TV-L1 算法创建光流计算器
     tvl1 = cv2.optflow.DualTVL1OpticalFlow_create()
-    print("计算光流")
     # 计算光流
     flow = tvl1.calc(frame1, frame2, None)
 
