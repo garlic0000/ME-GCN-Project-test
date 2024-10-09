@@ -113,7 +113,6 @@ def feature(opt):
                             np.stack(ior_feature_list_sequence, axis=0))
 
 
-
 if __name__ == "__main__":
     with open("/kaggle/working/ME-GCN-Project/feature_extraction/cas(me)^2/config.yaml", encoding="UTF-8") as f:
         yaml_config = yaml.safe_load(f)
