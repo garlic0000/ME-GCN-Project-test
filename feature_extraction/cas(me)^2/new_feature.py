@@ -17,8 +17,10 @@ def get_flow_count(root_path):
         if sub_item.is_dir():
             for type_item in sub_item.iterdir():
                 if type_item.is_dir():
-                    count += len(glob.glob(os.path.join(
-                        str(type_item), "flow_x*.jpg")))
+                    # count += len(glob.glob(os.path.join(
+                    #     str(type_item), "flow_x*.jpg")))
+                    # 计算 flow_*.npy 文件的数量
+                    count += len(glob.glob(os.path.join(str(type_item), "flow_*.npy")))
     return count
 
 
@@ -43,13 +45,13 @@ def feature(opt):
             for type_item in sub_item.iterdir():
                 if not type_item.is_dir():
                     continue
-                flow_x_path_list = glob.glob(
-                    os.path.join(str(type_item), "flow_x*.jpg"))
-                flow_y_path_list = glob.glob(
-                    os.path.join(str(type_item), "flow_y*.jpg"))
-                flow_x_path_list.sort()
-                flow_y_path_list.sort()
-
+                # flow_x_path_list = glob.glob(
+                #     os.path.join(str(type_item), "flow_x*.jpg"))
+                # flow_y_path_list = glob.glob(
+                #     os.path.join(str(type_item), "flow_y*.jpg"))
+                # flow_x_path_list.sort()
+                # flow_y_path_list.sort()
+                flow_paths = sorted(glob.glob(os.path.join(type_item, "flow_*.npy")))
                 csv_landmark_path = os.path.join(
                     landmark_root_path,
                     sub_item.name, type_item.name, "landmarks.csv")
@@ -67,14 +69,23 @@ def feature(opt):
                             # print(index, opt_step, row)
                             continue
                         i = index - opt_step
-                        # 这段有问题
-                        flow_x = cv2.imread(flow_x_path_list[i],
-                                            cv2.IMREAD_GRAYSCALE)
-                        flow_y = cv2.imread(flow_y_path_list[i],
-                                            cv2.IMREAD_GRAYSCALE)
-                        flow_x_y = np.stack((flow_x, flow_y), axis=2)
-                        flow_x_y = flow_x_y / np.float32(255)
-                        flow_x_y = flow_x_y - 0.5
+                        # # 这段有问题
+                        # flow_x = cv2.imread(flow_x_path_list[i],
+                        #                     cv2.IMREAD_GRAYSCALE)
+                        # flow_y = cv2.imread(flow_y_path_list[i],
+                        #                     cv2.IMREAD_GRAYSCALE)
+                        # flow_x_y = np.stack((flow_x, flow_y), axis=2)
+                        # flow_x_y = flow_x_y / np.float32(255)
+                        # flow_x_y = flow_x_y - 0.5
+                        # 读取光流数据
+                        flow_x_y = np.load(flow_paths[i])  # 读取光流数据
+                        # 确保读取的光流数据有效
+                        if flow_x_y is None or flow_x_y.shape[2] != 2:
+                            print(f"Error loading flow data at index {i}")
+                            continue
+
+                        # 将光流数据标准化到 [-0.5, 0.5]
+                        flow_x_y = flow_x_y / np.float32(255) - 0.5
                         landmarks = np.array(
                             [(int(row[index]), int(row[index + 68]))
                              for index in range(int(len(row) // 2))])
@@ -92,25 +103,6 @@ def feature(opt):
                             # 打印异常信息
                             print(str(exp))
                             break
-                        # LEFT_EYE_CONER_INDEX = 39
-                        # RIGHT_EYE_CONER_INDEX = 42
-                        # left_eye_coner = landmarks[LEFT_EYE_CONER_INDEX]
-                        # right_eye_coner = landmarks[RIGHT_EYE_CONER_INDEX]
-                        # length_between_coners = (
-                        #     right_eye_coner[0] - left_eye_coner[0]) / 2
-                        # (nose_roi_left, nose_roi_top, nose_roi_right,
-                        #     nose_roi_bottom) = get_rectangle_roi_boundary(
-                        #     np.arange(29, 30+1),
-                        #     landmarks,
-                        #     horizontal_bound=int(length_between_coners * 0.35),
-                        #     vertical_bound=int(length_between_coners * 0.35))
-                        # show_boundary_list = []
-                        # show_boundary_list.append([
-                        #     nose_roi_left, nose_roi_top,
-                        #     nose_roi_right, nose_roi_bottom])
-                        # imshow_for_test(
-                        #     "test", flow_x,
-                        #     face_boundarys=show_boundary_list)
                     if len(ior_feature_list_sequence) > 0:
                         new_type_dir_path = os.path.join(
                             feature_root_path, sub_item.name)
@@ -120,9 +112,6 @@ def feature(opt):
                             new_type_dir_path, f"{type_item.name}.npy"),
                             np.stack(ior_feature_list_sequence, axis=0))
 
-    # print("len of wrong video_list: {}".format(len(short_video_list)))
-    # print("*" * 10, "wrong video list", "*" * 10)
-    # print(short_video_list)
 
 
 if __name__ == "__main__":

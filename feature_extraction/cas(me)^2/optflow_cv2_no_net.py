@@ -16,27 +16,24 @@ def calculate_tvl1_optical_flow(frame1, frame2):
     return flow
 
 
-def save_flow_to_image(flow, output_path, frame_index):
+def save_flow_to_npy(flow, output_path, frame_index):
     # 将光流的x和y分量分开
     flow_x, flow_y = flow[..., 0], flow[..., 1]
 
-    # 归一化到 0~255 之间
-    flow_x_normalized = cv2.normalize(flow_x, None, 0, 255, cv2.NORM_MINMAX)
-    flow_y_normalized = cv2.normalize(flow_y, None, 0, 255, cv2.NORM_MINMAX)
+    # 保留原始的光流数据为 float32 格式
+    flow_x = flow_x.astype(np.float32)
+    flow_y = flow_y.astype(np.float32)
 
-    # 转换为8位图像
-    flow_x_img = flow_x_normalized.astype(np.uint8)
-    flow_y_img = flow_y_normalized.astype(np.uint8)
-    # 每个像素的取值范围是?
+    # 将 flow_x 和 flow_y 数据合并为一个 NumPy 数组
+    flow_x_y = np.stack((flow_x, flow_y), axis=-1)
 
-    # 保存为图像文件
-    # 图片从0开始命名
-    cv2.imwrite(os.path.join(output_path, f"flow_x_{frame_index :05d}.jpg"), flow_x_img)
-    cv2.imwrite(os.path.join(output_path, f"flow_y_{frame_index :05d}.jpg"), flow_y_img)
+    # 保存为 NumPy `.npy` 文件
+    np.save(os.path.join(output_path, f"flow_{frame_index:05d}.npy"), flow_x_y)
 
 
 def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
     # 排序
+    # 读取裁剪的图片
     image_list = sorted(glob.glob(os.path.join(input_dir, "*.jpg")))
     if len(image_list) < 2:
         print(f"Not enough images in {input_dir} to compute optical flow")
@@ -47,7 +44,7 @@ def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
     for i in range(opt_step, len(image_list), opt_step):
         frame = cv2.imread(image_list[i], cv2.IMREAD_GRAYSCALE)
         flow = calculate_tvl1_optical_flow(prev_frame, frame)
-        save_flow_to_image(flow, output_dir, frame_index)
+        save_flow_to_npy(flow, output_dir, frame_index)
         frame_index += 1
         prev_frame = frame
 

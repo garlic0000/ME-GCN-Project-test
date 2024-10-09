@@ -14,34 +14,6 @@ from retinaface.api import Facedetecor as RetinaFaceDetector
 # import dlib
 
 
-def imshow_for_test(windowname, img, face_boundarys=None, landmarks=None):
-    # 将BGR格式转换为RGB格式，cv2默认是BGR，而plt需要RGB
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    plt.imshow(img_rgb)
-    plt.title(windowname)
-
-    # 绘制人脸边界框
-    if face_boundarys is not None:
-        for face_boundary in face_boundarys:
-            plt.gca().add_patch(plt.Rectangle(
-                (face_boundary[0], face_boundary[1]),  # 左上角坐标
-                face_boundary[2] - face_boundary[0],  # 宽度
-                face_boundary[3] - face_boundary[1],  # 高度
-                edgecolor='red', facecolor='none', linewidth=1))
-
-    # 绘制landmarks
-    if landmarks is not None:
-        for point in landmarks:
-            plt.plot(point[0].item(), point[1].item(), 'ro', markersize=4)
-
-    # 隐藏坐标轴
-    plt.axis('off')
-
-    # 显示图像
-    plt.show()
-
-
 class LandmarkDetector:
     def __init__(self, model_path):
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
