@@ -20,9 +20,7 @@ def _split(dataset, split_path, split):
             os.makedirs(new_sub_dir_path)
         shutil.copy(feature_path, new_sub_dir_path)
 
-    # 这里是否需要自定义
-    # 不能直接读这个文件吧
-    # 这里像是专门处理cross这个数据库
+    # # 读取所有数据集混合的csv文件
     df = pd.read_csv("./cross.csv")
     df_list = []
     for feature_path in dataset:
@@ -39,6 +37,7 @@ if __name__ == "__main__":
     feature_root_path = "/home/whcold/Datas/public_micro_dataset/cross/feature"
     feature_split_path = ("/home/whcold/Datas/public_micro_dataset/cross/"
                           "feature_split")
+    # 混合所有的数据集 进行分割
     train_split_path = os.path.join(feature_split_path, "train")
     test_split_path = os.path.join(feature_split_path, "test")
     feature_path_list = []

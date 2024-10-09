@@ -27,18 +27,20 @@ def save_flow_to_image(flow, output_path, frame_index):
     # 转换为8位图像
     flow_x_img = flow_x_normalized.astype(np.uint8)
     flow_y_img = flow_y_normalized.astype(np.uint8)
+    # 每个像素的取值范围是?
 
     # 保存为图像文件
-    cv2.imwrite(os.path.join(output_path, f"flow_x_{frame_index:05d}.jpg"), flow_x_img)
-    cv2.imwrite(os.path.join(output_path, f"flow_y_{frame_index:05d}.jpg"), flow_y_img)
+    # 图片从0开始命名
+    cv2.imwrite(os.path.join(output_path, f"flow_x_{frame_index :05d}.jpg"), flow_x_img)
+    cv2.imwrite(os.path.join(output_path, f"flow_y_{frame_index :05d}.jpg"), flow_y_img)
 
 
 def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
+    # 排序
     image_list = sorted(glob.glob(os.path.join(input_dir, "*.jpg")))
     if len(image_list) < 2:
         print(f"Not enough images in {input_dir} to compute optical flow")
         return
-
     frame_index = 0
     prev_frame = cv2.imread(image_list[0], cv2.IMREAD_GRAYSCALE)
 
@@ -75,16 +77,16 @@ def optflow(opt):
     dir_count = get_dir_count(cropped_root_path)
     print("flow count = ", dir_count)
 
-    opt_step = 1  # 采样率
+    opt_step = 1
 
     with tqdm(total=dir_count) as tq:
         for sub_item in Path(cropped_root_path).iterdir():
             if sub_item.is_dir():
-                new_sub_dir_path = os.path.join(optflow_root_path, sub_item.name)
-                if not os.path.exists(new_sub_dir_path):
-                    os.makedirs(new_sub_dir_path)
                 for type_item in sub_item.iterdir():
                     if type_item.is_dir():
+                        new_sub_dir_path = os.path.join(optflow_root_path, sub_item.name, type_item.name)
+                        if not os.path.exists(new_sub_dir_path):
+                            os.makedirs(new_sub_dir_path)
                         print(f"Processing optical flow for {type_item}")
                         process_optical_flow_for_dir(str(type_item), new_sub_dir_path, opt_step)
                         tq.update()

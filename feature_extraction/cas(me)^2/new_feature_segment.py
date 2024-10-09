@@ -94,7 +94,7 @@ def segment_for_train(opt):
             if frame_count - segment_count * SEGMENT_LENGTH > 0:
                 segment_count += 1
             clip_boundary_list = [(i * SEGMENT_LENGTH - STEP,
-                                  (i + 1) * SEGMENT_LENGTH - 1 + STEP)
+                                   (i + 1) * SEGMENT_LENGTH - 1 + STEP)
                                   for i in range(segment_count)]
             feature_list = []
             labels_list = []
@@ -161,9 +161,9 @@ def segment_for_train(opt):
                         dtype=int)
                     clip_right_boundary = frame_count - 1
                 feature = video_feature[
-                    clip_left_boundary: clip_right_boundary + 1]
+                          clip_left_boundary: clip_right_boundary + 1]
                 labels = video_labels[
-                    clip_left_boundary: clip_right_boundary + 1]
+                         clip_left_boundary: clip_right_boundary + 1]
 
                 if left_padding is not None:
                     feature = np.concatenate((left_padding, feature), axis=0)
@@ -183,12 +183,13 @@ def segment_for_train(opt):
                 np.savez(
                     os.path.join(
                         out_dir,
-                        f"{video_name}_{str(index*SEGMENT_LENGTH).zfill(4)}"
+                        f"{video_name}_{str(index * SEGMENT_LENGTH).zfill(4)}"
                         f".npz"),
                     feature=feature_list[index],
                     label=labels_list[index],
                     video_name=video_name)
     print("segment for train Finished!")
+
 
 def segment_for_test(opt):
     feature_root_path = opt["feature_root_path"]
