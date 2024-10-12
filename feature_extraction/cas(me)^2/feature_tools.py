@@ -5,56 +5,6 @@ import matplotlib.pyplot as plt
 import cv2
 
 import torch
-from SAN.san_api import SanLandmarkDetector
-from retinaface.api import Facedetecor as RetinaFaceDetector
-
-
-# from retinaface import RetinaFace
-# import os
-# import dlib
-
-
-class LandmarkDetector:
-    def __init__(self, model_path):
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.det = SanLandmarkDetector(model_path, device)
-
-    def cal(self, img, offset=None, face_box=None):
-        if face_box is None:
-            face_box = (0, 0, img.shape[1], img.shape[0])
-        locs, _ = self.det.detect(img, face_box)
-        x_list = [
-            loc[0] if offset is None else loc[0] - offset[0] for loc in locs]
-        y_list = [
-            loc[1] if offset is None else loc[1] - offset[1] for loc in locs]
-        return x_list, y_list
-
-    def info(self, img, face_box=None):
-        if face_box is None:
-            face_box = (0, 0, img.shape[1], img.shape[0])
-        locs, _ = self.det.detect(img, face_box)
-        print(locs)
-
-
-class FaceDetector:
-    def __init__(self, model_path):
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.det = RetinaFaceDetector(model_path, device)
-
-    def cal(self, img):
-        left, top, right, bottom = self.det.get_face_box(img)
-        # 检测已裁剪的人脸图像 检测的参数不合法时
-        left = np.clip(left, 0, img.shape[1])
-        top = np.clip(top, 0, img.shape[0])
-        right = np.clip(right, 0, img.shape[1])
-        bottom = np.clip(bottom, 0, img.shape[0])
-        return left, top, right, bottom
-
-    def info(self, img):
-        """
-        用于调错
-        """
-        print(self.det.get_face_box(img))
 
 
 def get_top_optical_flows(optflows, percent):
@@ -154,7 +104,9 @@ def optflow_normalize(flow):
     Returns:
         a np.ndarray, the shape of return is (2,)
     """
-
+    # 这个可能要使用原始光流大小
+    # 因为需要计算光流的幅度大小
+    # 而且这个函数进行了光流的归一化 可能在传入光流之前不需要进行归一化
     assert flow.dtype == np.float32, (
         "element type of optflow should be float32")
 
@@ -175,10 +127,17 @@ def get_main_direction_flow(array_flow, direction_region):
         a ndarray of flows that are main directional in a region of flow
     """
 
+    # 这里是不是要使用原始光流？
+    # 这个可以使用归一化光流 因为只使用了光流的方向
+    # 使用两种光流 一种处理过的 另一种未处理过的用于提取方向
+    # 将光流矩阵展平并计算其角度
+    # 光流数据一般是三维的
     array_flow = array_flow.reshape(-1, 2)
     _, angs = cv2.cartToPolar(array_flow[..., 0], array_flow[..., 1])
+    # 为每个方向区间初始化一个列表
     direction_flows = [[] for i in range(len(direction_region))]
 
+    # 遍历每个角度，按方向区间分类光流
     for i, ang in enumerate(angs):
         for index, direction in enumerate(direction_region):
             if len(direction) == 2:
@@ -191,9 +150,11 @@ def get_main_direction_flow(array_flow, direction_region):
                     direction_flows[index].append(array_flow[i])
                     break
 
+    # 找到包含最多光流向量的方向
     max_count_index = np.argmax(
         np.array([len(x) for x in direction_flows])).item()
 
+    # 返回该方向下的光流向量
     return np.stack(direction_flows[max_count_index], axis=0)
 
 
@@ -226,10 +187,12 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
         """
         # 确保左右边界正确
         if nose_roi_left > nose_roi_right:
+            print("nose_roi_left > nose_roi_right")
             nose_roi_left, nose_roi_right = nose_roi_right, nose_roi_left  # 交换左右边界
 
         # 确保上下边界正确
         if nose_roi_top > nose_roi_bottom:
+            print("nose_roi_top > nose_roi_bottom")
             nose_roi_top, nose_roi_bottom = nose_roi_bottom, nose_roi_top  # 交换上下边界
 
         # 使用np.max和np.min确保ROI边界不越界
@@ -240,17 +203,6 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
         # 根据修正后的边界提取ROI
         flow_nose_roi = flows[nose_roi_top:nose_roi_bottom + 1, nose_roi_left:nose_roi_right + 1]
         flow_nose_roi = flow_nose_roi.reshape(-1, 2)
-
-        # # 用于测试
-        # # 使用 np.max 和 np.min 检查光流区域
-        # # 光流值通常应该是较小的浮点数，通常在 -1 到 1 之间波动
-        # if flow_nose_roi.size == 0:
-        #     print("flow_nose_roi is empty after extraction, checking boundaries...")
-        #     print(
-        #         f"ROI boundaries: top={nose_roi_top}, bottom={nose_roi_bottom}, left={nose_roi_left}, right={nose_roi_right}")
-        # else:
-        #     print(f"Flow values: min={np.min(flow_nose_roi, axis=0)}, max={np.max(flow_nose_roi, axis=0)}")
-
         return flow_nose_roi
 
     LEFT_EYE_CONER_INDEX = 39
@@ -286,9 +238,10 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
 def calculate_roi_freature_list(flow, landmarks, radius):
     assert flow.dtype == np.float32, (
         "element type of optflow should be float32")
-    assert np.max(flow) <= 1, "max value shoued be less than 1"
+    # 使用原始光流 暂时进行注释
+    # assert np.max(flow) <= 1, "max value shoued be less than 1"
 
-    ior_flows = get_rois(
+    roi_flows = get_rois(
         flow, landmarks,
         indices=[
             18, 19, 20,  # left eyebrow
@@ -303,57 +256,20 @@ def calculate_roi_freature_list(flow, landmarks, radius):
     # 可能有问题
     global_optflow_vector = cal_global_optflow_vector(flow, landmarks)
 
-    ior_flows_adjust = ior_flows - global_optflow_vector
-    ior_feature_list = []  # feature in face
-    for ior_flow in ior_flows_adjust:
-        ior_main_direction_flow = get_main_direction_flow(
-            ior_flow,
+    roi_flows_adjust = roi_flows - global_optflow_vector
+    roi_feature_list = []  # feature in face
+    for roi_flow in roi_flows_adjust:
+        roi_main_direction_flow = get_main_direction_flow(
+            roi_flow,
             direction_region=[
                 (1 * math.pi / 6, 5 * math.pi / 6),
                 (5 * math.pi / 6, 7 * math.pi / 6),
                 (7 * math.pi / 6, 11 * math.pi / 6),
                 (11 * math.pi / 6, 12 * math.pi / 6, 0, 1 * math.pi / 6),
             ])
-        ior_main_direction_flow = get_top_optical_flows(
-            ior_main_direction_flow, percent=0.6)
-        ior_feature = optflow_normalize(ior_main_direction_flow)
-        ior_feature_list.append(ior_feature)
-    return np.stack(ior_feature_list, axis=0)
+        roi_main_direction_flow = get_top_optical_flows(
+            roi_main_direction_flow, percent=0.6)
+        roi_feature = optflow_normalize(roi_main_direction_flow)
+        roi_feature_list.append(roi_feature)
+    return np.stack(roi_feature_list, axis=0)
 
-
-def conver_flow_to_gbr(flow):
-    hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
-    hsv[..., 1] = 255
-    mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-    hsv[..., 0] = ang * 180 / np.pi / 2
-    hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-    # Convert HSV image into BGR for demo
-    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-    return bgr
-
-
-def get_micro_expression_average_len(csv_path):
-    df = pd.read_csv(csv_path)
-    df = df[df["type_idx"] == 2]
-    df = df[df["end_frame"] != 0]
-    array_start_frame = df.start_frame.values
-    array_end_frame = df.end_frame.values
-    array_me_len = array_end_frame - array_start_frame + 1
-    average_len = np.mean(array_me_len).item()
-    return average_len
-
-
-def get_macro_expression_average_len(csv_path):
-    df = pd.read_csv(csv_path)
-    df = df[df["type_idx"] == 1]
-    df = df[df["end_frame"] != 0]
-    array_start_frame = df.start_frame.values
-    array_end_frame = df.end_frame.values
-    array_me_len = array_end_frame - array_start_frame + 1
-    average_len = np.mean(array_me_len).item()
-    return average_len
-
-
-if __name__ == "__main__":
-    a = get_micro_expression_average_len("./samm_new_25.csv")
-    pass

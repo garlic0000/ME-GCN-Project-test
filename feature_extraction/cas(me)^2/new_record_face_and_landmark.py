@@ -33,33 +33,6 @@ def record_csv(csv_path, rows):
         csv_w.writerows(rows)
 
 
-# 不使用cv进行弹出对话框的形式显示
-# def show_img(img, face, landmarks):
-#     for i in range(len(landmarks) // 2):
-#         cv2.circle(img, (landmarks[i], landmarks[i + 68]), 1, (0, 0, 255), 4)
-#     cv2.rectangle(img, (face[0], face[1]), (face[2], face[3]), (0, 0, 255), 1)
-#     cv2.imshow("landmark", img)
-#     cv2.waitKey(0)
-def show_img(img, face, landmarks):
-    # 将BGR格式转换为RGB格式，cv2默认是BGR，而plt需要RGB
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    # 绘制 landmarks
-    for i in range(len(landmarks) // 2):
-        plt.plot(landmarks[i], landmarks[i + 68], 'ro', markersize=2)
-
-    # 绘制人脸框
-    plt.gca().add_patch(plt.Rectangle(
-        (face[0], face[1]), face[2] - face[0], face[3] - face[1],
-        edgecolor='red', facecolor='none', linewidth=1))
-
-    # 显示图像
-    plt.imshow(img_rgb)
-    plt.title('Landmarks and Face')
-    plt.axis('off')  # 不显示坐标轴
-    plt.show()
-
-
 def record_face_and_landmarks(opt):
     cropped_root_path = opt["cropped_root_path"]
 
@@ -116,6 +89,7 @@ def record_face_and_landmarks(opt):
                         tq.update()
                     if len(rows_face) == len(img_path_list):
                         # 所有的脸都检测成功才能记载，而且只记载一次
+                        # 记录下的脸部矩形框的大小 后面没有使用
                         record_csv(csv_face_path, rows_face)
                         record_csv(csv_landmark_path, rows_landmark)
 

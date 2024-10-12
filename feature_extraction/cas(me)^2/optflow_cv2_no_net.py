@@ -16,19 +16,55 @@ def calculate_tvl1_optical_flow(frame1, frame2):
     return flow
 
 
-def save_flow_to_npy(flow, output_path, frame_index):
+# def save_flow_to_image(flow, output_path, frame_index):
+#     # 将光流的x和y分量分开
+#     flow_x, flow_y = flow[..., 0], flow[..., 1]
+#
+#     # 归一化到 0~255 之间
+#     flow_x_normalized = cv2.normalize(flow_x, None, 0, 255, cv2.NORM_MINMAX)
+#     flow_y_normalized = cv2.normalize(flow_y, None, 0, 255, cv2.NORM_MINMAX)
+#
+#     # 转换为8位图像
+#     flow_x_img = flow_x_normalized.astype(np.uint8)
+#     flow_y_img = flow_y_normalized.astype(np.uint8)
+#
+#     # 保存为图像文件
+#     cv2.imwrite(os.path.join(output_path, f"flow_x_{frame_index:05d}.jpg"), flow_x_img)
+#     cv2.imwrite(os.path.join(output_path, f"flow_y_{frame_index:05d}.jpg"), flow_y_img)
+
+# def save_flow_to_npy(flow, output_path, frame_index):
+#     # 将光流的x和y分量分开
+#     flow_x, flow_y = flow[..., 0], flow[..., 1]
+#
+#     # 保留原始的光流数据为 float32 格式
+#     # 这样存储数据太大 9655张图片提取的光流npy为5.77G
+#     flow_x = flow_x.astype(np.float32)
+#     flow_y = flow_y.astype(np.float32)
+#
+#     # 将 flow_x 和 flow_y 数据合并为一个 NumPy 数组
+#     # axis = -1 是在stack中添加的新维度为最后一个维度
+#     # (H, W) ----> (H, W, 2)  新维度为2
+#     flow_x_y = np.stack((flow_x, flow_y), axis=-1)
+#     flow_x_y = flow_x_y / np.float32(255) - 0.5
+#     # 保存为 NumPy `.npy` 文件
+#     np.save(os.path.join(output_path, f"flow_{frame_index:05d}.npy"), flow_x_y)
+
+def save_flow_to_npz(flow, output_path, frame_index):
     # 将光流的x和y分量分开
     flow_x, flow_y = flow[..., 0], flow[..., 1]
 
     # 保留原始的光流数据为 float32 格式
+    # 这样存储数据太大 9655张图片提取的光流npy为5.77G
     flow_x = flow_x.astype(np.float32)
     flow_y = flow_y.astype(np.float32)
 
     # 将 flow_x 和 flow_y 数据合并为一个 NumPy 数组
+    # axis = -1 是在stack中添加的新维度为最后一个维度
+    # (H, W) ----> (H, W, 2)  新维度为2
     flow_x_y = np.stack((flow_x, flow_y), axis=-1)
-
-    # 保存为 NumPy `.npy` 文件
-    np.save(os.path.join(output_path, f"flow_{frame_index:05d}.npy"), flow_x_y)
+    flow_x_y = flow_x_y / np.float32(255) - 0.5
+    # 保存为压缩的 NumPy `.npz` 文件
+    np.savez_compressed(os.path.join(output_path, f"flow_{frame_index:05d}.npz"), flow_x_y=flow_x_y)
 
 
 def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
@@ -44,12 +80,15 @@ def process_optical_flow_for_dir(input_dir, output_dir, opt_step=1):
     for i in range(opt_step, len(image_list), opt_step):
         frame = cv2.imread(image_list[i], cv2.IMREAD_GRAYSCALE)
         flow = calculate_tvl1_optical_flow(prev_frame, frame)
-        save_flow_to_npy(flow, output_dir, frame_index)
+        save_flow_to_npz(flow, output_dir, frame_index)
         frame_index += 1
         prev_frame = frame
 
 
 def get_dir_count(root_path):
+    """
+    计算需要处理的已裁剪的图片数
+    """
     count = 0
     for sub_item in Path(root_path).iterdir():
         if sub_item.is_dir():

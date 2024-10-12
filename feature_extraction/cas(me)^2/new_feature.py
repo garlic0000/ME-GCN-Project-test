@@ -17,10 +17,8 @@ def get_flow_count(root_path):
         if sub_item.is_dir():
             for type_item in sub_item.iterdir():
                 if type_item.is_dir():
-                    # count += len(glob.glob(os.path.join(
-                    #     str(type_item), "flow_x*.jpg")))
-                    # 计算 flow_*.npy 文件的数量
-                    count += len(glob.glob(os.path.join(str(type_item), "flow_*.npy")))
+                    count += len(glob.glob(os.path.join(
+                        str(type_item), "flow_x*.jpg")))
     return count
 
 
@@ -45,13 +43,12 @@ def feature(opt):
             for type_item in sub_item.iterdir():
                 if not type_item.is_dir():
                     continue
-                # flow_x_path_list = glob.glob(
-                #     os.path.join(str(type_item), "flow_x*.jpg"))
-                # flow_y_path_list = glob.glob(
-                #     os.path.join(str(type_item), "flow_y*.jpg"))
-                # flow_x_path_list.sort()
-                # flow_y_path_list.sort()
-                flow_paths = sorted(glob.glob(os.path.join(type_item, "flow_*.npy")))
+                flow_x_path_list = glob.glob(
+                    os.path.join(str(type_item), "flow_x*.jpg"))
+                flow_y_path_list = glob.glob(
+                    os.path.join(str(type_item), "flow_y*.jpg"))
+                flow_x_path_list.sort()
+                flow_y_path_list.sort()
                 csv_landmark_path = os.path.join(
                     landmark_root_path,
                     sub_item.name, type_item.name, "landmarks.csv")
@@ -70,27 +67,19 @@ def feature(opt):
                             continue
                         i = index - opt_step
                         # # 这段有问题
-                        # flow_x = cv2.imread(flow_x_path_list[i],
-                        #                     cv2.IMREAD_GRAYSCALE)
-                        # flow_y = cv2.imread(flow_y_path_list[i],
-                        #                     cv2.IMREAD_GRAYSCALE)
-                        # flow_x_y = np.stack((flow_x, flow_y), axis=2)
-                        # flow_x_y = flow_x_y / np.float32(255)
-                        # flow_x_y = flow_x_y - 0.5
-                        # 读取光流数据
-                        flow_x_y = np.load(flow_paths[i])  # 读取光流数据
-                        # 确保读取的光流数据有效
-                        if flow_x_y is None or flow_x_y.shape[2] != 2:
-                            print(f"Error loading flow data at index {i}")
-                            continue
-
-                        # 将光流数据标准化到 [-0.5, 0.5]
-                        flow_x_y = flow_x_y / np.float32(255) - 0.5
+                        flow_x = cv2.imread(flow_x_path_list[i],
+                                            cv2.IMREAD_GRAYSCALE)
+                        flow_y = cv2.imread(flow_y_path_list[i],
+                                            cv2.IMREAD_GRAYSCALE)
+                        flow_x_y = np.stack((flow_x, flow_y), axis=2)
+                        flow_x_y = flow_x_y / np.float32(255)
+                        flow_x_y = flow_x_y - 0.5
                         landmarks = np.array(
                             [(int(row[index]), int(row[index + 68]))
                              for index in range(int(len(row) // 2))])
 
                         try:
+                            # radius=5 从面部关键点半径为5的区域提取感兴趣区域ROI
                             ior_feature_list = calculate_roi_freature_list(
                                 flow_x_y, landmarks, radius=5)
                             ior_feature_list_sequence.append(
