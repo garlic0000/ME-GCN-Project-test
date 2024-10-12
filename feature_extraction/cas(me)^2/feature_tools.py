@@ -283,8 +283,11 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
         raise ValueError("get_main_direction_flow returned None, check flow calculation.")
     # 按光流向量的幅度（即长度）从大到小排序后，选择前 88% 的向量
     flow_nose_roi = get_top_optical_flows(flow_nose_roi, percent=0.88)
-    glob_flow_vector = optflow_normalize(flow_nose_roi)
-    return glob_flow_vector
+    # 这里的归一化可能要注释掉
+    # 在这里进行归一化之后 可能后面就没有了可比性
+    # roi_flows_adjust = roi_flows - global_optflow_vector
+    global_flow_vector = optflow_normalize(flow_nose_roi)
+    return global_flow_vector
 
 
 def calculate_roi_freature_list(flow, landmarks, radius):
