@@ -5,7 +5,7 @@ import cv2 as cv
 if __name__ == '__main__':
     model_path = 'D:/Users/Desktop/workspace/preproccess/checkpoint/san_checkpoint_49.pth.tar'
     image_path = './data/S011/000.jpg'
-    face = (143.,110.,353.,383.)
+    face = (143., 110., 353., 383.)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     det = SanLandmarkDetector(model_path, device)
     # locs, scores = det.detect(image_path, face)
