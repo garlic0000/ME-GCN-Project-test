@@ -63,6 +63,14 @@ def get_rectangle_roi_boundary(indices, landmarks,
     # axis 表示沿着行的方向 比较每一列的最大值和最小值  roi_landmarks为n行2列
     left_bound, top_bound = np.min(roi_landmarks, axis=0)
     right_bound, bottom_bound = np.max(roi_landmarks, axis=0)
+    if left_bound > right_bound:
+        print("asdfasdfasd")
+        print(landmarks)
+        print(roi_landmarks)
+    if top_bound > bottom_bound:
+        print("wwwwwwwwww")
+        print(landmarks)
+        print(roi_landmarks)
     return left_bound - horizontal_bound, top_bound - vertical_bound, \
            right_bound + horizontal_bound, bottom_bound + vertical_bound
 
@@ -113,6 +121,7 @@ def optflow_normalize(flow):
     Returns:
         a np.ndarray, the shape of return is (2,)
     """
+    # 原项目中归一化
     # 这个可能要使用原始光流大小
     # 因为需要计算光流的幅度大小
     # 而且这个函数进行了光流的归一化 可能在传入光流之前不需要进行归一化
@@ -125,6 +134,24 @@ def optflow_normalize(flow):
     average_module = np.sum(np.linalg.norm(flow, axis=1)) / flow.shape[0]
     feature = flow_one * average_module
     return feature
+
+
+def optflow_normalize_(feature):
+    """
+    先对整个特征向量进行归一化，然后将其缩放到 [-0.5, 0.5] 范围
+    """
+    assert feature.dtype == np.float32, "element type of optflow should be float32"
+
+    # 步骤1：归一化整个特征向量，防止零向量
+    feature_norm = np.linalg.norm(feature)  # 求范数
+    if feature_norm == 0:
+        feature_norm = 1e-6  # 避免除以零的情况
+    feature_scaled = feature / feature_norm  # 归一化整个特征向量 此时的范围为[-1, 1]
+
+    # 步骤2：将特征向量缩放到 [-0.5, 0.5] 范围
+    feature_scaled = feature_scaled * 0.5  # 缩放到 [-0.5, 0.5] 范围
+
+    return feature_scaled
 
 
 def get_main_direction_flow(array_flow, direction_region):
@@ -285,7 +312,11 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
     flow_nose_roi = get_top_optical_flows(flow_nose_roi, percent=0.88)
     # 这里的归一化可能要注释掉
     # 在这里进行归一化之后 可能后面就没有了可比性
-    # roi_flows_adjust = roi_flows - global_optflow_vector
+    # 比如 roi_flows_adjust = roi_flows - global_optflow_vector
+    # global_flow_vector = optflow_normalize(flow_nose_roi)
+    # 直接使用 最后统一归一化
+    # operands could not be broadcast together with shapes (12,11,11,2) (813,2)
+    # global_flow_vector = flow_nose_roi.reshape(-1, 2)
     global_flow_vector = optflow_normalize(flow_nose_roi)
     return global_flow_vector
 
@@ -331,6 +362,7 @@ def calculate_roi_freature_list(flow, landmarks, radius):
             roi_main_direction_flow, percent=0.6)
         # 对选取的光流特征进行归一化处理
         roi_feature = optflow_normalize(roi_main_direction_flow)
+        # 测试
+        # roi_feature = optflow_normalize_(roi_feature)
         roi_feature_list.append(roi_feature)
     return np.stack(roi_feature_list, axis=0)
-

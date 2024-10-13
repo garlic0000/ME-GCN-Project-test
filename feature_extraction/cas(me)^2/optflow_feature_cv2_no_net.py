@@ -70,6 +70,37 @@ def get_original_flow(frame1, frame2):
     return flow_x_y
 
 
+def scale_flow_to_range(flow):
+    """
+    将原始光流的幅度缩放到 [-0.5, 0.5] 范围，并保持方向信息。
+
+    Args:
+        flow: np.ndarray, shape of flow should be (-1, 2)
+
+    Returns:
+        scaled_flow: 缩放后的光流向量
+    """
+    assert flow.dtype == np.float32, "element type of optflow should be float32"
+
+    # Step 1: 计算每个光流向量的幅度
+    magnitudes = np.linalg.norm(flow, axis=1, keepdims=True)  # 幅度 (n, 1)
+    magnitudes[magnitudes == 0] = 1e-6  # 避免除零
+
+    # Step 2: 对光流方向进行归一化
+    normalized_flow = flow / magnitudes  # 方向单位向量 (n, 2)
+
+    # Step 3: 对幅度进行缩放，将其映射到 [0, 1] 再平移到 [-0.5, 0.5]
+    max_magnitude = np.max(magnitudes)  # 获取最大幅度，用于缩放
+    min_magnitude = np.min(magnitudes)  # 获取最小幅度
+    scaled_magnitudes = (magnitudes - min_magnitude) / (max_magnitude - min_magnitude)  # 先缩放到 [0, 1]
+    scaled_magnitudes = scaled_magnitudes * 0.5  # 再缩放到 [0, 0.5]
+    scaled_magnitudes = scaled_magnitudes - 0.25  # 平移到 [-0.5, 0.5]
+
+    # Step 4: 恢复光流，按缩放后的幅度恢复光流向量
+    scaled_flow = normalized_flow * scaled_magnitudes  # 方向 * 缩放后的幅度
+
+    return scaled_flow
+
 def get_flow_count(root_path):
     count = 0
     for sub_item in Path(root_path).iterdir():
@@ -126,6 +157,8 @@ def optflow_feature(opt):
                         # flow_x_y = get_flow_x_y(prev_frame, frame)
                         # 获取原始光流
                         flow_x_y = get_original_flow(prev_frame, frame)
+                        # 进行缩放
+                        flow_x_y = scale_flow_to_range(flow_x_y)
                         prev_frame = frame
                         landmarks = np.array(
                             [(int(row[index]), int(row[index + 68]))
