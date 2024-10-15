@@ -63,14 +63,10 @@ def get_rectangle_roi_boundary(indices, landmarks,
     # axis 表示沿着行的方向 比较每一列的最大值和最小值  roi_landmarks为n行2列
     left_bound, top_bound = np.min(roi_landmarks, axis=0)
     right_bound, bottom_bound = np.max(roi_landmarks, axis=0)
-    if left_bound > right_bound:
-        print("asdfasdfasd")
-        print(landmarks)
-        print(roi_landmarks)
-    if top_bound > bottom_bound:
-        print("wwwwwwwwww")
-        print(landmarks)
-        print(roi_landmarks)
+    # 上面两行代码没问题
+    # 但是 +-horizontal_bound  +-vertical_bound之后有几个有问题
+    # 会出现nose_roi_left > nose_roi_right问题
+    # casme_030_0505 中有17张图片计算出horizontal_bound为负数的情况
     return left_bound - horizontal_bound, top_bound - vertical_bound, \
            right_bound + horizontal_bound, bottom_bound + vertical_bound
 
@@ -265,6 +261,7 @@ ROI boundaries: top=139, bottom=153, left=34, right=27
     RIGHT_EYE_CONER_INDEX = 42  # 原项目数据 右眼内眼角
     left_eye_coner = landmarks[LEFT_EYE_CONER_INDEX]
     right_eye_coner = landmarks[RIGHT_EYE_CONER_INDEX]
+    # casme_030_0505 中有17张图片计算出负数
     length_between_coners = (right_eye_coner[0] - left_eye_coner[0]) / 2
 
     """
