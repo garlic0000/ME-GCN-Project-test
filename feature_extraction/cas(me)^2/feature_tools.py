@@ -125,8 +125,21 @@ def optflow_normalize(flow):
         "element type of optflow should be float32")
 
     delta = 0.000001
+    # 这个求和不管正负号
+    # 将 flow 在第 0 维（即所有点的光流向量）进行逐元素求和。
+    # 结果是一个形状为 (2,) 的向量，代表光流在 x 和 y 方向上的总和。
+    # 所有的x分量相加 所有的y分量相加
+    # 最终sum_flow会变成sum_flow = [x分量之和, y分量之和]
+    # 直接求 x 和 y 分量的和，可以简化所有光流向量为一个全局的方向向量，用于描述整体的运动趋势。
+    # 这种方法在处理大量光流时非常有用，因为它能够保留主要的运动信息
     sum_flow = np.sum(flow, axis=0)
+    # 各向量平方和的平方根
     flow_one = sum_flow / (np.linalg.norm(sum_flow) + delta)
+    # flow.shape[0]为光流的个数
+    # 每个光流的x的平方和y的平方开方之后求和再除以总光流个数
+    # 求模的平均值
+    # 展平光流之后的平均模值求法 (flow, axis=1) 二维展平光流 (flow, axis=2) 三维原始光流
+    # 但是计算的结果不同
     average_module = np.sum(np.linalg.norm(flow, axis=1)) / flow.shape[0]
     feature = flow_one * average_module
     return feature

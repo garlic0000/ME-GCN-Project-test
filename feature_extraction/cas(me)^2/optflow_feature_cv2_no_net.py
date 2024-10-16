@@ -108,7 +108,7 @@ def get_original_flow(frame1, frame2):
 
 def normalize_flow_to_range(flow):
     """
-    将光流的 x 和 y 分量归一化到 [0, 1]，然后平移到 [-0.5, 0.5] 范围。
+    将光流的 x 和 y 分量归一化到 [0, 1]，然后平移到 [-0.5, 0.5] 范围，使用模的平均值进行归一化。
 
     Args:
         flow: 光流数据, np.ndarray, shape of flow should be (H, W, 2)
@@ -119,25 +119,30 @@ def normalize_flow_to_range(flow):
     # Step 1: 获取光流的 x 和 y 分量
     flow_x = flow[..., 0]  # 光流的 x 分量
     flow_y = flow[..., 1]  # 光流的 y 分量
+    flow_x = flow_x.astype(np.float32)
+    flow_y = flow_y.astype(np.float32)
 
-    # Step 2: 计算每个像素的光流模，并获取模的最大值
+    # Step 2: 计算每个像素的光流模
     magnitudes = np.linalg.norm(flow, axis=2)  # 计算光流的模 (H, W)
-    max_magnitude = np.max(magnitudes)  # 取光流模的最大值
 
-    if max_magnitude == 0:
-        raise ValueError("Max magnitude of the flow is zero, normalization not possible.")
+    # Step 3: 计算模的平均值
+    avg_magnitude = np.mean(magnitudes)
 
-    # Step 3: 将光流的 x 和 y 分量归一化到 [0, 255]
-    flow_x_normalized_255 = ((flow_x + max_magnitude) / (2 * max_magnitude)) * np.float32(255)
-    flow_y_normalized_255 = ((flow_y + max_magnitude) / (2 * max_magnitude)) * np.float32(255)
-    # 可以保存x y 灰度图像 暂时不保存
+    # Step 4: 将光流的 x 和 y 分量归一化
+    flow_x_normalized_255 = ((flow_x + avg_magnitude) / (2 * avg_magnitude)) * np.float32(255)
+    flow_y_normalized_255 = ((flow_y + avg_magnitude) / (2 * avg_magnitude)) * np.float32(255)
 
-    # Step 4: 进一步归一化到 [0, 1]，再平移到 [-0.5, 0.5]
-    flow_x_y_normalized_255 = np.stack((flow_x_normalized_255, flow_y_normalized_255), axis=2)
-    flow_x_y_normalized = (flow_x_y_normalized_255 / np.float32(255)) - 0.5  # 归一化并平移
+    # # 转换为 uint8 类型
+    # flow_x_normalized_255 = flow_x_normalized_255.astype(np.uint8)
+    # flow_y_normalized_255 = flow_y_normalized_255.astype(np.uint8)
+    #
+    # # 可以保存x y 灰度图像 暂时不保存
+
+    # Step 5: 归一化到 [0, 1]，再平移到 [-0.5, 0.5]
+    flow_x_y_normalized = np.stack((flow_x_normalized_255, flow_y_normalized_255), axis=2)
+    flow_x_y_normalized = (flow_x_y_normalized / np.float32(255)) - 0.5  # 归一化并平移到 [-0.5, 0.5] 范围
 
     return flow_x_y_normalized
-
 
 
 def get_croped_count(root_path):
