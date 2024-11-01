@@ -14,22 +14,23 @@ import multiprocessing
 import warnings
 
 
-# fix random seed
 def same_seeds(seed):
-    torch.manual_seed(seed)  # fix random seed for CPU
-    if torch.cuda.is_available():  # fix random seed for GPU
-        torch.cuda.manual_seed(seed)  # set for current GPU
-        torch.cuda.manual_seed_all(seed)  # set for all GPUs
-    np.random.seed(seed)  # fix random seed for random number generation
-    torch.backends.cudnn.enabled = True
-    torch.backends.cudnn.benchmark = True  # Set True when GPU available
-    torch.backends.cudnn.deterministic = True  # fix architecture
+    """
+    为模型的训练环境设置随机种子，以确保结果的可复现性
+    """
+    torch.manual_seed(seed)  # 设置 PyTorch 的全局随机种子，以确保在 CPU 上生成的随机数具有一致性，从而在相同的种子下能得到相同的结果
+    if torch.cuda.is_available():  # 检查是否有可用的 GPU，如果有，继续设置 GPU 的随机种子
+        torch.cuda.manual_seed(seed)  # 设置当前 GPU 的随机种子
+        torch.cuda.manual_seed_all(seed)  # 如果有多张 GPU 可用，设置所有 GPU 的随机种子
+    np.random.seed(seed)  # 设置 NumPy 的随机种子，保证使用 NumPy 生成的随机数在每次运行时一致
+    torch.backends.cudnn.enabled = True  # 启用 cuDNN 库（适用于 NVIDIA 的 GPU），以加速深度学习任务中的卷积运算
+    torch.backends.cudnn.benchmark = True  # 启用 cuDNN 的 benchmark 模式，通常在输入数据尺寸一致的情况下，可以提供更高的速度
+    torch.backends.cudnn.deterministic = True  # 设置 cuDNN 的确定性模式，以保证在相同的输入和种子下产生相同的结果。需要注意的是，将 deterministic 设为 True 可能会降低训练速度。
 
 
-# for reproduction, same as orig. paper setting
-same_seeds(1)
+same_seeds(1)  # 调用 same_seeds(1) 设置种子为 1，以便保证实验的可重复性
 
-loss_list = []
+loss_list = []  # 用于保存训练过程中的损失值，以便后续进行分析或绘图
 
 
 # keep track of statistics

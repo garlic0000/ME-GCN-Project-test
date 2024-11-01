@@ -139,7 +139,7 @@ def optflow_normalize(flow):
     # 每个光流的x的平方和y的平方开方之后求和再除以总光流个数
     # 求模的平均值
     # 展平光流之后的平均模值求法 (flow, axis=1) 二维展平光流 (flow, axis=2) 三维原始光流
-    # 但是计算的结果不同
+    # 这两中方法本质上相同
     average_module = np.sum(np.linalg.norm(flow, axis=1)) / flow.shape[0]
     feature = flow_one * average_module
     return feature

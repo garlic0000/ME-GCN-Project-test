@@ -88,10 +88,11 @@ class AUwGCN(torch.nn.Module):
                                 'assets',
                                 '{}.npy'.format(opt['dataset'])
                                 )
+        # 骨干网
         self.graph_embedding = torch.nn.Sequential(GCN(2, 16, 16, mat_path))
         # self.graph_embedding = torch.nn.Sequential(GCN(2, 32, 32, mat_path))
         in_dim = 192  # 24
-
+        # 颈部网？
         self._sequential = torch.nn.Sequential(
             torch.nn.Conv1d(in_dim, 64, kernel_size=1, stride=1, padding=0,
                             bias=False),
@@ -111,6 +112,7 @@ class AUwGCN(torch.nn.Module):
         )
         # 0:micro(start,end,None),    3:macro(start,end,None),
         # 6:micro_apex,7:macro_apex,  8:micro_action, macro_action
+        # 分类层 头部
         self._classification = torch.nn.Conv1d(
             64, 3 + 3 + 2 + 2, kernel_size=3, stride=1, padding=2, dilation=2, bias=False)
 

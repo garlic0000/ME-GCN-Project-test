@@ -128,9 +128,12 @@ def normalize_flow_to_range(flow):
     # Step 3: 计算模的平均值
     avg_magnitude = np.mean(magnitudes)
 
+    flow_x_normalized = np.clip((flow_x + avg_magnitude) / (2 * avg_magnitude), 0, 1)
+    flow_y_normalized = np.clip((flow_y + avg_magnitude) / (2 * avg_magnitude), 0, 1)
     # Step 4: 将光流的 x 和 y 分量归一化
-    flow_x_normalized_255 = ((flow_x + avg_magnitude) / (2 * avg_magnitude)) * np.float32(255)
-    flow_y_normalized_255 = ((flow_y + avg_magnitude) / (2 * avg_magnitude)) * np.float32(255)
+    # 光流值的绝对值有可能超过avg_magnitude 可能没法归一化到[0, 1]
+    flow_x_normalized_255 = flow_x_normalized * np.float32(255)
+    flow_y_normalized_255 = flow_y_normalized * np.float32(255)
 
     # # 转换为 uint8 类型
     # flow_x_normalized_255 = flow_x_normalized_255.astype(np.uint8)
